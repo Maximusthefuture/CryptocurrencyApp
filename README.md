@@ -1,1 +1,3 @@
 # CryptocurrencyApp
+
+- [ ] Create project

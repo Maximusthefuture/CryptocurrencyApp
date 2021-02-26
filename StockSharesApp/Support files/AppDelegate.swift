@@ -10,10 +10,18 @@ import UIKit
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-
+    var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        let sharesListVC = SharesListViewController()
+        let navController = UINavigationController(rootViewController: sharesListVC)
+        navController.navigationItem.title  = "MyApp"
+        
+       
+        window?.makeKeyAndVisible()
+        window?.rootViewController = sharesListVC
+        
         return true
     }
 

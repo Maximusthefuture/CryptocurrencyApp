@@ -23,7 +23,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let sharesListVC = SharesListViewController()
         let navController = UINavigationController(rootViewController: sharesListVC)
-        navController.navigationItem.title  = "MyApp"
+       
         
        
         window?.makeKeyAndVisible()

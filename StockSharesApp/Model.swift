@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 
-
 struct Model {
     var title: String
     var subtitle: String

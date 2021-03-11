@@ -23,7 +23,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let sharesListVC = SharesListViewController()
         let navController = UINavigationController(rootViewController: sharesListVC)
-       
+        UINavigationBar.appearance().shadowImage = UIImage()
+        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
         
        
         window?.makeKeyAndVisible()

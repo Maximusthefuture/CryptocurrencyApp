@@ -8,7 +8,7 @@
 import UIKit
 
 class StockTableViewCell: UITableViewCell {
-
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -23,37 +23,44 @@ class StockTableViewCell: UITableViewCell {
             companyPrice.text = "\(stock!.price) ₽"
         }
     }
-
+    
+    
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         // Configure the view for the selected state
     }
     
-    private let companyShortNameLabel: UILabel = {
+    var companyShortNameLabel: UILabel = {
         var label = UILabel()
         label.font = .boldSystemFont(ofSize: 28)
         label.textColor = .black
         return label
     }()
     
-    private let companyFullNameLabel: UILabel = {
+    var companyFullNameLabel: UILabel = {
         var label = UILabel()
         label.textColor = .black
+        
+        //        label.font = UIFont(name: "Montserrat-SemiBold", size: 11)
+        label.font = label.font.withSize(11)
+        
+        
+        
         return label
     }()
     
     
-    private let companyImage: UIImageView = {
+    var companyImage: UIImageView = {
         var image = UIImageView()
-        image.frame = CGRect(x: 0, y: 0, width: 52, height: 52)
+        image.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
         image.layer.masksToBounds = false
         image.layer.cornerRadius = 20
         image.clipsToBounds = true
-        
         return image
     }()
     
-    private let companyPrice: UILabel = {
+    
+    var companyPrice: UILabel = {
         var label = UILabel()
         label.font = .boldSystemFont(ofSize: 28)
         label.textColor = .black
@@ -76,7 +83,7 @@ class StockTableViewCell: UITableViewCell {
         return button
     }()
     
-     private let roundedRect: UIView = {
+    private let roundedRect: UIView = {
         var view = UIView()
         view.layer.cornerRadius = 20
         view.backgroundColor = .blue
@@ -86,11 +93,11 @@ class StockTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-//
+        //
         setConstaints()
-
+        
     }
-
+    
     override func layoutSubviews() {
         super.layoutSubviews()
         roundedRect.clipsToBounds = true
@@ -108,9 +115,12 @@ class StockTableViewCell: UITableViewCell {
         
         roundedRect.anchor(top: topAnchor, left: leftAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 8, paddingRight: 0, width: contentView.frame.width, height: contentView.frame.height, enableInsets: false)
         roundedRect.layer.masksToBounds = true
-
-        }
+        
+    }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+    }
     
     
     func setConstaints() {
@@ -121,13 +131,15 @@ class StockTableViewCell: UITableViewCell {
         addSubview(companyImage)
         addSubview(companyPrice)
         addSubview(changePrice)
+        addSubview(favouriteButton)
         
-
+        
         
         companyImage.anchor(top: topAnchor, left: leftAnchor, bottom: bottomAnchor, right: nil, paddingTop: 8, paddingLeft: 8, paddingBottom: 16, paddingRight: 0, width: 0, height: 0, enableInsets: false)
-        companyShortNameLabel.anchor(top: topAnchor, left: companyImage.rightAnchor, bottom: nil, right: nil, paddingTop: 10, paddingLeft: 9, paddingBottom: 0, paddingRight: 0, width: frame.size.width / 2, height: 0, enableInsets: false)
+        companyShortNameLabel.anchor(top: topAnchor, left: companyImage.rightAnchor, bottom: nil, right: nil, paddingTop: 14, paddingLeft: 9, paddingBottom: 30, paddingRight: 0, width: frame.size.width / 2, height: 0, enableInsets: false)
         companyFullNameLabel.anchor(top: companyShortNameLabel.bottomAnchor, left: companyImage.rightAnchor, bottom: bottomAnchor, right: nil, paddingTop: 0, paddingLeft: 8, paddingBottom: 8, paddingRight: 8, width: frame.size.width / 2 , height: 0, enableInsets: false)
-        
+        //        favouriteButton.anchor(top: companyShortNameLabel.topAnchor, left: companyShortNameLabel.rightAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0, enableInsets: false)
+        //        
         companyPrice.anchor(top: topAnchor, left: companyShortNameLabel.rightAnchor, bottom: changePrice.topAnchor, right: nil, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0, enableInsets: false)
         changePrice.anchor(top: companyShortNameLabel.bottomAnchor, left: companyShortNameLabel.rightAnchor, bottom: bottomAnchor, right: nil, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0, enableInsets: false)
     }

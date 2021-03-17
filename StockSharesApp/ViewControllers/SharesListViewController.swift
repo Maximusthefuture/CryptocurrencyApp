@@ -17,14 +17,9 @@ class SharesListViewController: UIViewController{
     
     var modelList = [Model]()
     var quotesList = [Stock]()
-    var quotesList2 = [String]()
+    var tickerList = [String]()
     var stockPrice = [String: Double]()
  
-    
-    override func viewWillAppear(_ animated: Bool) {
-        print("VIEWWILLAPPEAR")
-        
-    }
     
     override func viewDidLoad() {
         self.view.backgroundColor = .white
@@ -37,15 +32,13 @@ class SharesListViewController: UIViewController{
         let titleLable = UILabel(frame: CGRect(x: 0, y: 0, width: view.frame.width - 32, height: view.frame.height))
         configureTabView()
         configureTableView()
-        networkManager.delegate = self
-        
         networkManager.loadQuotes {  result in
             
-            self.quotesList2 = result![0].quotes
-            print(self.quotesList2.map{ $0 })
-//            DispatchQueue.main.async {
-//                self.tableView.reloadData()
-//            }
+            self.tickerList = result![0].quotes
+            print(self.tickerList.map{ $0 })
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
         }
     
         networkManager.group.notify(queue: .main) {
@@ -67,7 +60,6 @@ class SharesListViewController: UIViewController{
     let behindView = UIView()
     
     private func configureTabView() {
-        //        navigationController?.hidesBarsOnSwipe = true
         behindView.backgroundColor = .white
         self.view.addSubview(tabView)
         self.view.addSubview(behindView)
@@ -116,61 +108,37 @@ class SharesListViewController: UIViewController{
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = 120.0
+        tableView.allowsSelection = false
     }
-    
-    var priceDelegate: Double?
     
 }
 
+extension SharesListViewController: UITableViewDelegate, UITableViewDataSource {
 
-
-
-extension SharesListViewController: UITableViewDelegate, UITableViewDataSource, PriceDelegate {
-    
-    func didUpdatePrice(price: Double) {
-        //        DispatchQueue.main.async {
-        //            self.priceDelegate = price
-        //        }
-        
-    }
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return quotesList2.count
+        return tickerList.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SharesListCell", for: indexPath) as? StockTableViewCell
-        //        let quotes = quotesList[indexPath.row]
-        var quotes2 = quotesList2[indexPath.row]
-        
-        
-        
-        cell?.companyShortNameLabel.text = quotes2
-        networkManager.loadCompanyProfile(companyName: quotes2) { result in
+        let ticker = tickerList[indexPath.row]
+        cell?.companyShortNameLabel.text = ticker
+
+        networkManager.loadCompanyProfile(companyName: ticker) { result in
+            cell?.set(profile: result)
             DispatchQueue.main.async {
                 cell?.companyFullNameLabel.text = result?.name ?? ""
-                let url = URL(string: result?.logo ?? " ")
-                let data = try? Data(contentsOf: (url ?? URL(string: "https://finnhub.io/api/logo?symbol=SDGR"))!)
-               
-                let image = UIImage(data: data!)
-                DispatchQueue.main.async {
-                    cell?.companyImage.image = image
-                }
-                print("LOGO: \(result?.logo)")
             }
         }
-        
-        
-        
-        networkManager.loadStockPrice(companyName: quotes2) { result in
+
+        networkManager.loadStockPrice(companyName: ticker) { result in
             DispatchQueue.main.async {
-                
                 cell?.companyPrice.text = String(result?.c ?? 0)
             }
         }
         
         if indexPath.row % 2 == 0 {
-            cell?.backgroundColor = UIColor(red: 0.9412, green: 0.9569, blue: 0.9686, alpha: 1.0)
+            cell?.roundedRect.backgroundColor = UIColor(red: 0.9412, green: 0.9569, blue: 0.9686, alpha: 1.0)
         }
         //MARK:TODO forceunwrap ristrict!
         return cell!

@@ -8,6 +8,11 @@
 import Foundation
 import UIKit
 
+
+enum Images {
+    static let placeholder = UIImage(named: "catplaceholder")
+}
+
 extension UIView {
     func anchor(top: NSLayoutYAxisAnchor?,
                 left: NSLayoutXAxisAnchor?,

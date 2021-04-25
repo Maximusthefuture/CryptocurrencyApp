@@ -8,7 +8,12 @@
 import Foundation
 import UIKit
 
-class Model: Equatable {
+enum Currency: String {
+    case US = "en_US"
+    case RU = "ru_RU"
+}
+
+class Model: Hashable {
     
     let ticker: String
     let name: String
@@ -33,10 +38,18 @@ class Model: Equatable {
         return lhs.ticker  == rhs.ticker && lhs.name == rhs.name
     }
     
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(ticker)
+        hasher.combine(name)
+        hasher.combine(logo)
+        hasher.combine(price)
+        hasher.combine(changePrice)
+        hasher.combine(isFavourite)
+    }
+    
     func setup() {
         priceFormatter.usesGroupingSeparator = true
         priceFormatter.numberStyle = .currency
-        //MARK: TODO use enum??
         priceFormatter.locale = Locale.init(identifier: "en_US")
         changePriceFormatter.numberStyle = .decimal
         changePriceFormatter.maximumFractionDigits = 2

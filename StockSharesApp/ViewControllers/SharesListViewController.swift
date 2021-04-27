@@ -12,8 +12,10 @@ enum Section {
 }
 
 class SharesListViewController: DataLoadingViewController {
+    
     var tableView: UITableView!
     var searchBar = UISearchBar()
+    var finhub: DataProvider?
     var networkManager = NetworkManager()
     var favouriteList = [Model]()
     var isSetFavourite = false
@@ -51,13 +53,7 @@ class SharesListViewController: DataLoadingViewController {
             let activeArray = self.isSetFavourite ? self.favouriteList : self.modelList
             let ticker = activeArray[indexPath.row]
             cell?.stock = ticker
-            //            if ticker.changePrice < 0 {
-            //                cell?.changePrice.textColor = .red
-            //            } else {
-            //                cell?.changePrice.textColor = .green
-            //            }
             cell?.delegate = self
-            
             //            var updatedSnapshot = self.dataSource.snapshot()
             //            if let dataSourceIndex = updatedSnapshot.indexOfItem(ticker) {
             //                let item = self.modelList[dataSourceIndex]
@@ -78,37 +74,21 @@ class SharesListViewController: DataLoadingViewController {
         self.dataSource.defaultRowAnimation = .fade
     }
     
-    func searchControllerConfig() {
-        searchViewController = SearchViewController()
-        searchController = UISearchController(searchResultsController: searchViewController)
-        searchController.searchResultsUpdater = self
-        searchController.delegate = self
-        searchController.searchBar.placeholder  = "Find company or ticker"
-        searchController.searchBar.delegate = self
-        searchController.searchBar.autocapitalizationType = .none
-        
-        self.navigationItem.searchController = searchController
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
         self.navigationItem.largeTitleDisplayMode = .always
         self.navigationController?.navigationBar.sizeToFit()
         
-        stockModel = StockModel(networkManager: networkManager, delegate: self)
-        stockModel?.loadQuotes()
-        modelList = stockModel?.stockModelList ?? []
-        searchControllerConfig()
-        //                dummyData()
+            //MARK: TODO DI
+//        finhub = FinhubDataProvider()
+        //        var manager = NetworkManager(finhubDataProvider: finhub!)
         configureTabView()
         configureTableView()
-        //        diffableDataSource()
+        searchControllerConfig()
+        stockModel = StockModel(networkManager: networkManager, delegate: self)
+        self.stockModel?.loadTest()
         showLoadingViews()
-        //        networkManager.group.notify(queue: .main) {
-        ////            self.tableView.reloadData()
-        //            print("DONE")
-        //        }
     }
     
     var tabView: TabView = {
@@ -118,13 +98,24 @@ class SharesListViewController: DataLoadingViewController {
     
     let behindView = UIView()
     
+    func searchControllerConfig() {
+        searchViewController = SearchViewController()
+        searchController = UISearchController(searchResultsController: searchViewController)
+        searchController.searchResultsUpdater = self
+        searchController.delegate = self
+        searchController.searchBar.placeholder  = "Find company or ticker"
+        searchController.searchBar.delegate = self
+        searchController.searchBar.autocapitalizationType = .none
+        self.navigationItem.searchController = searchController
+    }
+    
     private func configureTabView() {
         behindView.backgroundColor = .white
         self.view.addSubview(tabView)
         self.view.addSubview(behindView)
         tabView.delegate = self
         let guide = view.safeAreaLayoutGuide
-        behindView.anchor(top: view.topAnchor, left: view.leftAnchor, bottom: nil, right: view.rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 60, enableInsets: true)
+        behindView.anchor(top: view.topAnchor, left: view.leftAnchor, bottom: nil, right: view.rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 60, enableInsets: true, identifier: "behindView")
         behindView.leadingAnchor.constraint(equalTo: guide.leadingAnchor).isActive = true
         behindView.trailingAnchor.constraint(equalTo: guide.trailingAnchor).isActive = true
         tabView.translatesAutoresizingMaskIntoConstraints = false
@@ -135,18 +126,13 @@ class SharesListViewController: DataLoadingViewController {
         tabView.heightAnchor.constraint(equalToConstant: tableViewInsetHight).isActive = true
         
     }
-    
-    
+ 
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         if velocity.y > 0 {
-            //            UIView.animate(withDuration: 0.5, animations: {
             self.navigationController?.setNavigationBarHidden(true, animated: true)
-            //            }, completion: nil)
             print(targetContentOffset.pointee.y)
         } else {
-            //            UIView.animate(withDuration: 0.0, animations: {
             self.navigationController?.setNavigationBarHidden(false, animated: true)
-            //            }, completion: nil)
             print(targetContentOffset.pointee.y)
         }
     }
@@ -164,6 +150,7 @@ class SharesListViewController: DataLoadingViewController {
         tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -8).isActive = true
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.prefetchDataSource = self
         tableView.rowHeight = 120.0
         tableView.allowsSelection = false
     }
@@ -186,34 +173,42 @@ extension SharesListViewController: UITableViewDelegate, UITableViewDataSource, 
     }
     
     func isFavourite(cell: StockTableViewCell) -> Bool {
+       
+        cell.favouriteButton.isSelected = !cell.favouriteButton.isSelected
         print(cell.favouriteButton.isSelected)
-        cell.favouriteButton.isSelected = true
         if cell.favouriteButton.isSelected {
-        stockModel?.stockModelList[tableView.indexPath(for: cell)!.row].isFavourite = true
+            self.stockModel?.stockModelList[self.tableView.indexPath(for: cell)!.row].isFavourite = true
+            self.favouriteList.append((self.stockModel?.stockModelList[self.tableView.indexPath(for: cell)!.row])!)
+            print("\(self.tableView.indexPath(for: cell)!.row)")
         } else {
-            stockModel?.stockModelList[tableView.indexPath(for: cell)!.row].isFavourite = false
+            self.stockModel?.stockModelList[self.tableView.indexPath(for: cell)!.row].isFavourite = false
+            self.favouriteList.remove(at: self.tableView.indexPath(for: cell)!.row)
+            print("\(self.tableView.indexPath(for: cell)!.row)")
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
         }
         //MARK: TODO Get prev state of tableview, then go back when clicked to Stocks
-        return true
+        return cell.favouriteButton.isSelected
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return isSetFavourite ? favouriteList.count : stockModel!.stockModelList.count
+        return isSetFavourite ? favouriteList.count : stockModel?.total ?? 50
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SharesListCell", for: indexPath) as? StockTableViewCell
-        let activeArray = isSetFavourite ? favouriteList : stockModel!.stockModelList
-        let ticker = activeArray[indexPath.row]
-        cell?.stock = ticker
         cell?.delegate = self
-        //нужен ли?
-        //        DispatchQueue.main.async {
-        cell?.set(profile: ticker)
-        //        stockModel?.moderator(at: indexPath.row)
-        //        }
-        if indexPath.row % 2 == 0 {
-            cell?.roundedRect.backgroundColor = UIColor(red: 0.9412, green: 0.9569, blue: 0.9686, alpha: 1.0)
+        if isLoadingCell(for: indexPath) {
+            cell?.configure(with: .none)
+        } else {
+            cell?.configure(with:  stockModel?.moderator(at: indexPath.row))
+            cell?.set(profile:  stockModel?.moderator(at: indexPath.row))
+        }
+        DispatchQueue.main.async {
+            if indexPath.row % 2 == 0 {
+                cell?.roundedRect.backgroundColor = UIColor(red: 0.9412, green: 0.9569, blue: 0.9686, alpha: 1.0)
+            }
         }
         return cell!
     }
@@ -221,16 +216,14 @@ extension SharesListViewController: UITableViewDelegate, UITableViewDataSource, 
 
 extension SharesListViewController: FavouriteListDelegate {
     func showFavouriteList() {
-        isSetFavourite = true
-        favouriteList = stockModel!.stockModelList.filter { $0.isFavourite	}
+        self.isSetFavourite = true
         DispatchQueue.main.async {
             self.tableView.reloadData()
         }
-        print("COUNT IS: \(modelList.filter { $0.isFavourite}.count)")
     }
     
     func showList() {
-        isSetFavourite = false
+        self.isSetFavourite = false
         DispatchQueue.main.async {
             self.tableView.reloadData()
         }
@@ -258,14 +251,18 @@ extension SharesListViewController: UISearchBarDelegate {
 extension SharesListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         print("UPDATING")
-        let searchResult = stockModel!.filterResults(modelList: modelList, text: searchController.searchBar.text!)
+        
+        guard let list = stockModel?.stockModelList else {
+            return
+        }
+        let searchResult = stockModel!.filterResults(modelList: list, text: searchController.searchBar.text!)
         
         if searchResult.isEmpty {
             print("Nothing to find")
             //            stockModel.startNetworkSearch
             //searchedArray.append?
         }
-        
+        //can use GCD
         //        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(stockModel.loadSearch), object: nil)
         //        perform(#selector(stockModel.loadSearch), with: nil, afterDelay: 0.5)
         
@@ -275,6 +272,8 @@ extension SharesListViewController: UISearchResultsUpdating {
             } else {
                 //fetch from network?
                 //                result.filteredItems = searcherArray
+                //stockModel.searchResult(searchController.searchBar.text!)э
+                
             }
             result.tableView.reloadData()
         }
@@ -282,16 +281,43 @@ extension SharesListViewController: UISearchResultsUpdating {
 }
 
 extension SharesListViewController: StockModelDelegate {
+    
     func onFetchCompleted(with newIndexPathsToReload: [IndexPath]?) {
-        tableView.reloadData()
-        dismissLoadingView()
+        guard let newIndexPathsToReload = newIndexPathsToReload else {
+            self.tableView.reloadData()
+            self.dismissLoadingView()
+            return
+        }
+            let indexPathToReload = self.visibleIndexPathsToReload(intersecting: newIndexPathsToReload)
+            self.tableView.reloadRows(at: indexPathToReload, with: .automatic)
     }
     
     func onFetchFailed(with reason: String) {
         
     }
+}
+
+extension SharesListViewController: UITableViewDataSourcePrefetching {
     
+    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+        if indexPaths.contains(where: isLoadingCell) {
+            stockModel?.loadTest()
+            print("prefetchRowsAt \(indexPaths)")
+        }
+    }
+}
+
+
+private extension SharesListViewController {
+    func isLoadingCell(for indexPath: IndexPath ) -> Bool {
+        return indexPath.row >= stockModel!.currentCount
+    }
     
+    func visibleIndexPathsToReload(intersecting indexPaths: [IndexPath]) -> [IndexPath] {
+        let indexPathForVisibleRows = tableView.indexPathsForVisibleRows ?? []
+        let indexPathIntersection = Set(indexPathForVisibleRows).intersection(indexPaths)
+        return Array(indexPathIntersection)
+    }
 }
 
 

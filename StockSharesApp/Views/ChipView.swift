@@ -25,7 +25,7 @@ class ChipView: UIView {
     override func layoutSubviews() {
         self.layer.cornerRadius = 14.5
         self.addSubview(label)
-        label.frame = CGRect(x: 0, y: 0, width: self.frame.width - 8, height: 16)
+        label.frame = CGRect(x: self.bounds.minX + 4, y: self.bounds.midY / 2, width: self.bounds.width - 8, height: 16)
         //        label.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         //        label.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         //        label.widthAnchor.constraint(equalTo: self.widthAnchor, constant: 0).isActive = true

@@ -13,6 +13,32 @@ enum Images {
     static let placeholder = UIImage(named: "catplaceholder")
 }
 
+extension UINavigationItem {
+    func setTitle(title: String, subtitle: String) {
+        let titleLabel = UILabel()
+        titleLabel.font = UIFont.systemFont(ofSize: 18)
+        titleLabel.text = title
+        titleLabel.sizeToFit()
+        
+        let subtitleLabel = UILabel()
+        subtitleLabel.text = subtitle
+        subtitleLabel.font = UIFont.systemFont(ofSize: 12)
+        subtitleLabel.textAlignment = .center
+        subtitleLabel.sizeToFit()
+        
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        stackView.distribution = .equalCentering
+        stackView.alignment = .center
+        stackView.axis = .vertical
+        let width = max(titleLabel.frame.width, subtitleLabel.frame.width)
+        stackView.frame = CGRect(x: 0, y: 0, width: width, height: 50)
+//        stackView.addSubview(self.titleView)
+        titleLabel.sizeToFit()
+        subtitleLabel.sizeToFit()
+        self.titleView = stackView
+    }
+}
+
 extension URL {
     func get<T:Codable>(completion: @escaping (T?) -> Void) {
         let debug = true

@@ -1,4 +1,4 @@
-# CryptocurrencyApp
+# SharesStock
 
 - [x] Create project
 - [x] На стартовом экране отображается список акций. 

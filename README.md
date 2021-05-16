@@ -8,4 +8,4 @@ CocoaPods used: https://github.com/danielgindi/Charts
 - [x] Пользователь может добавлять акции в избранные и отдельно просматривать этот список.
 - [x] Пользователь может искать акции по тикеру или названию и добавлять их в избранные.
 
-![simulator_screenshot_6F932469-D5BC-4C25-99FE-2B22543AC3A8](https://user-images.githubusercontent.com/18566369/118388067-e57d2e00-b62a-11eb-95a7-6bd10323f7a6.png)
+![simulator](https://user-images.githubusercontent.com/18566369/118388067-e57d2e00-b62a-11eb-95a7-6bd10323f7a6.png)

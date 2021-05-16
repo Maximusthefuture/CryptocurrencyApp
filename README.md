@@ -1,5 +1,7 @@
 # SharesStock
 
+CocoaPods used: https://github.com/danielgindi/Charts
+
 - [x] Create project
 - [x] На стартовом экране отображается список акций. 
 - [x] У каждой акции указан тикер, название компании, текущая цена и изменение цены за сутки.

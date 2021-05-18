@@ -11,10 +11,12 @@ import UIKit
 
 class NewsViewController: UIViewController {
     
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Section, News>
     typealias SnapShot = NSDiffableDataSourceSnapshot<Section, News>
     var collectionView: UICollectionView!
     private lazy var dataSource = makeDataSource()
+    var newsModel: NewsModel?
     
     var news: [News] = []
     var  roundedRect: UIView = {
@@ -26,33 +28,34 @@ class NewsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
+        newsModel = NewsModel(newsProvider: NetworkManager(), delegate: self)
+        newsModel?.fetchNews(symbol: "AAPL")
         let layout = UICollectionViewFlowLayout()
         self.navigationItem.title = "NEWS"
         collectionView  = UICollectionView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height), collectionViewLayout: layout)
         self.collectionView.delegate = self
-        createDummyData()
         view.addSubview(collectionView)
         configureCollectionView()
-        applySnapshot()
+//        applySnapshot()
+     
         
     }
     
     func configureCollectionView() {
+        collectionView.backgroundColor = .clear
         collectionView.register(UINib(nibName: "NewsViewCell", bundle: nil), forCellWithReuseIdentifier: "NewsViewCell")
-        
         let guide = self.view.safeAreaLayoutGuide
         collectionView?.translatesAutoresizingMaskIntoConstraints = false
         collectionView?.topAnchor.constraint(equalTo: guide.topAnchor, constant: 0).isActive = true
         collectionView?.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0).isActive = true
         collectionView?.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0).isActive = true
         collectionView?.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: 0).isActive = true
-        
     }
     
     func applySnapshot() {
         var snapShot = SnapShot()
         snapShot.appendSections([.main])
-        snapShot.appendItems(news)
+        snapShot.appendItems(newsModel!.newsList)
         dataSource.apply(snapShot, animatingDifferences: true)
     }
     
@@ -64,17 +67,6 @@ class NewsViewController: UIViewController {
         }
         return dataSource
     }
-    
-    func createDummyData() {
-        var count = 0
-        for i in 0..<30 {
-            count += 1
-            news.append(News(
-                            newsDescription: "fdsfasdeqweqweqweqweqwewqegdfgdfgl;lasjkdkajsdkajsldjaslkdjaslkdjlaksjdlkasjdlok",
-                            link: "apple.com", pubDate: "30.05.23",
-                            title: "Fasting news\(count)"))
-        }
-    }
 }
 
 extension NewsViewController: UICollectionViewDelegateFlowLayout {
@@ -82,3 +74,19 @@ extension NewsViewController: UICollectionViewDelegateFlowLayout {
         return CGSize(width: self.view.frame.width, height: 200)
     }
 }
+
+extension NewsViewController: NewsFetchDelegate {
+    
+    func fetchCompleted() {
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
+            self.applySnapshot()
+        }
+    }
+    
+    func fetchFailed(reason: String) {
+        
+    }
+}
+
+

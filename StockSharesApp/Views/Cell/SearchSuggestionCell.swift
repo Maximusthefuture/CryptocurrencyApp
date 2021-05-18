@@ -7,10 +7,9 @@
 
 import UIKit
 
-protocol setTextDeledate {    
+protocol SetTextDeledate {
     func setText(string: String) -> String
 }
-
 
 class SearchSuggestionCell: UICollectionViewCell {
     
@@ -26,8 +25,7 @@ class SearchSuggestionCell: UICollectionViewCell {
         chipView.label = label
         contentView.addSubview(chipView)
     }
-    
-
+ 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

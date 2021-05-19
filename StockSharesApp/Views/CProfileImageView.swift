@@ -33,9 +33,11 @@ class CProfileImageView: UIImageView {
             guard let self = self else { return }
             DispatchQueue.main.async {
                 self.image = image
+                if image == nil {
+                    self.image = self.imagePlaceholder
+                }
             }
         }
-        
+        self.image = self.imagePlaceholder
     }
-    
 }

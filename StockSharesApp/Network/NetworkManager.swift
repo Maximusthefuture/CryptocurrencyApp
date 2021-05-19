@@ -8,29 +8,40 @@ import Foundation
 import UIKit
 
 class NetworkManager {
-    
+  
     var session = URLSession.shared
-    private let token = "c1165pn48v6t4vgvvivg"
+//    private let token = "c1165pn48v6t4vgvvivg"
+    private let token = "sandbox_c1165pn48v6t4vgvvj00"
+    
     let group = DispatchGroup()
     var baseUrl = "https://finnhub.io/api/v1/"
     var cache = NSCache<NSString, UIImage>()
     //MARK: TODO delete singlton!
     static let shared = NetworkManager()
     let finhubDataProvider = FinhubDataProvider()
+    let mboumProvider = MboumProvider()
+    
+    //мне нужен нетворк провайдер который будет принимать дата провайдер.
+    //чтобы я мог подставить сюда любой API
+    //DI principle
     //MARK: TODO SET INIT
-//    init(finhubDataProvider: FinhubDataProvider) {
+//    init(finhubDataProvider: DataProvider) {
 //        self.finhubDataProvider = finhubDataProvider
 //    }
+    
+   
+    func fetchNews(symbol: String = "AAPL", completion withCompletion: @escaping (Result<NewsDataModel, DataResponseError>) -> Void) {
+        mboumProvider.getNews(symbol: symbol, competion: withCompletion)
+    }
  
     func getDetails(company: String, completion withCompletion: @escaping (Profile?, StockPrice?) -> Void) {
         finhubDataProvider.getDetails(company: company, completion: withCompletion)
-        
     }
     
-    func loadCompanyPopularIndices(completion withCompletion: @escaping (PopularIndices?) -> Void) {
+    func loadCompanyPopularTest(completion withCompletion: @escaping (Result<PopularIndices, DataResponseError>) -> Void) {
         finhubDataProvider.loadPopular(completion: withCompletion)
     }
-    
+
     func loadImage(from urlString: String, completed: @escaping (UIImage?) -> Void) {
         group.enter()
         let cacheKey = NSString(string: urlString)
@@ -57,7 +68,8 @@ class NetworkManager {
                 completed(image)
                 self.group.leave()
             }
-        }.resume()
+        }
+        task.resume()
     }    
 }
 

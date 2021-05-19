@@ -19,12 +19,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let winScene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(windowScene: winScene)
-       
-        
+   
         let sharesListVC = SharesListViewController()
         let navController = UINavigationController(rootViewController: sharesListVC)
-        UINavigationBar.appearance().shadowImage = UIImage()
-        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
+//        UINavigationBar.appearance().shadowImage = UIImage()
+//        UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
         
        
         window?.makeKeyAndVisible()

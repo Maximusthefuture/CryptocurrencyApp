@@ -16,13 +16,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate {
     var tableView = UITableView()
     var filteredItems = [Model]()
     var sharesListController: SharesListViewController = SharesListViewController()
-    
-    func dummyData() {
-        for _ in 0...12 {
-            filteredItems.append(Model(ticker: "AAPL", name: "asdqweAdqwdeqwdqwdqwd", logo: "", price: 2000, changePrice: 0.12, isFavourite: false))
-        }
-    }
-    
+  
     func configureTableView() {
         view.addSubview(tableView)
         let guide = view.safeAreaLayoutGuide
@@ -34,7 +28,6 @@ class SearchViewController: UIViewController, UICollectionViewDelegate {
         tableView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: -8).isActive = true
         tableView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 8).isActive = true
         tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -8).isActive = true
-        //        tableView.anchor(top: view.topAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0, enableInsets: true)
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = 120.0
@@ -60,17 +53,13 @@ class SearchViewController: UIViewController, UICollectionViewDelegate {
         self.view.backgroundColor = .white
         configureTableView()
         configureView()
-        //        dummyData()
     }
     
     func configureView() {
-        let customLayout = CustomCollectionViewLayout()
         collectionViewLayout = UICollectionViewFlowLayout()
         collectionView =  UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
         collectionViewLayout.itemSize = CGSize(width: view.frame.size.width / 3, height: view.frame.size.width / 3)
         collectionViewLayout.scrollDirection = .vertical
-        //        customLayout.delegate = self
-        //        customLayout.scrollDirection = .vertical
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(SearchSuggestionCell.self, forCellWithReuseIdentifier: "SearchSuggestionCell")
@@ -96,7 +85,7 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "\(StockTableViewCell.self)", for: indexPath) as? StockTableViewCell
         let items = filteredItems[indexPath.row]
-        cell?.stock = items
+        cell?.configure(with: items)
         return cell!
     }
 }
@@ -136,7 +125,7 @@ extension SearchViewController: UICollectionViewDataSource {
                 if indexPath.section == 0 {
                     headerView.label.text = "Popular requests"
                 } else {
-                    headerView.label.text = "Some other header"
+                    headerView.label.text = "You’ve searched for this"
                 }
                 
                 return headerView

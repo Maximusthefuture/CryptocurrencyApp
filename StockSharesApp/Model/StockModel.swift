@@ -23,11 +23,17 @@ class StockModel {
     var total = 0
     var start = 0
     var startTicker = 0
-    var end = 13
+    var end = 8
     var isFetchInProgress = false
     private weak var delegate: StockModelDelegate?
     var numOfTickers = 13
     let mineGroupGlobal = DispatchGroup()
+    let queue = DispatchQueue(label: "com.singleton.queue", attributes: .concurrent)
+    let mineQueue = DispatchQueue(label: "mine serial")
+    
+    
+    //MARK: DEBUG
+    var debug = false
     
     init(networkManager: NetworkManager, delegate: StockModelDelegate) {
         self.networkManager = networkManager
@@ -46,51 +52,56 @@ class StockModel {
         return total
     }
     
-    func loadTest() {
+    func dummyData() {
+        for _ in 0...40 {
+            stockModelList.append(Model(ticker: "AAPL", name: "Apple co", logo: "", price: 300, changePrice: -2, isFavourite: false))
+        }
+        total = 40
+        self.delegate?.onFetchCompleted(with: .none)
+    }
+    
+    func fetchDataFromNetwork() {
         guard !self.isFetchInProgress else {
             return
         }
         self.isFetchInProgress = true
         print("In background")
-        self.networkManager?.loadCompanyPopularTest { result in
-            switch result {
-            case .failure(let error):
-                DispatchQueue.main.async {
+        if !debug {
+            self.networkManager?.loadCompanyPopularTest { result in
+                switch result {
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self.isFetchInProgress = false
+                        self.delegate?.onFetchFailed(with: error.reason)
+                    }
+                case .success(let response):
+                    self.tickerList = Array(response.constituents[self.startTicker...self.end])
+                    self.startTicker += 3
+                    self.end += 3
                     self.isFetchInProgress = false
-                    self.delegate?.onFetchFailed(with: error.reason)
-                }
-            case .success(let response):
-                self.tickerList = Array(response.constituents[self.startTicker...self.end])
-                self.startTicker += 10
-                self.end += 10
-                print("end \(self.end)")
-                print("startTicker: \(self.startTicker)")
-                print("numoftickers: \(self.numOfTickers)")
-                self.isFetchInProgress = false
-                self.total = response.constituents.count
-                
-                self.getDetails(tickerList: self.tickerList) { (result) in
-                    self.stockModelList.append(result[self.start])
-                    self.start += 1
-                    print(self.start)
-                    print("STOCKMODEL \(self.stockModelList.count)")
-                }
-                DispatchQueue.main.async {
-                    if self.stockModelList.count > 29 {
-                        let indexPathToReload = self.calculateIndexPathToReload(from: self.tickerList)
+                    self.total = response.constituents.count
+                    
+                    self.getDetails(tickerList: self.tickerList) { (result) in
+                        self.stockModelList.append(result[self.start])
+                        self.start += 1
+                    }
+                    
+                    if self.stockModelList.count > 30 {
+                        let indexPathToReload = self.calculateIndexPathToReload(from: self.array)
                         self.delegate?.onFetchCompleted(with: indexPathToReload)
                     } else {
                         self.delegate?.onFetchCompleted(with: .none)
                     }
                 }
             }
+        } else {
+            DispatchQueue.main.async {
+                self.dummyData()
+            }
         }
-        print("STOCKMODEL TICKERLIST: \(tickerList.count)")
-        
     }
     
     func getDetails(tickerList: [String], completion: @escaping ([Model]) -> Void ) {
-        //походу идет двойной запрос нет?
         for i in tickerList  {
             mineGroupGlobal.enter()
             self.networkManager!.getDetails(company: i) { p, q in
@@ -101,17 +112,16 @@ class StockModel {
                     return
                 }
                 self.array.append(Model(ticker: i, name: name, logo: logo, price: current, changePrice: current - prevClosePrice , isFavourite: false))
-                print("ARRAYCOUNT: \(self.array.count)")
                 self.mineGroupGlobal.leave()
-                self.group.notify(queue: .main) {
+                self.group.notify(queue: FinhubDataProvider.queue) {
                     completion(self.array)
                 }
             }
         }
     }
     
-    private func calculateIndexPathToReload(from newModel: [String]) -> [IndexPath] {
-        let startIndex = stockModelList.count - tickerList.count
+    private func calculateIndexPathToReload(from newModel: [Model]) -> [IndexPath] {
+        let startIndex = stockModelList.count - array.count
         let endIndex = startIndex + newModel.count
         print("startIndex: \(startIndex)")
         print("endIndex: \(endIndex)")

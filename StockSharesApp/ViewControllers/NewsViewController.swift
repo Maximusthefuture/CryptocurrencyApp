@@ -28,7 +28,7 @@ class NewsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
-        newsModel = NewsModel(newsProvider: NetworkManager(), delegate: self)
+        newsModel = NewsModel(newsProvider: NetworkManager(newsProvider: MboumProvider()), delegate: self)
         newsModel?.fetchNews(symbol: "AAPL")
         let layout = UICollectionViewFlowLayout()
         self.navigationItem.title = "NEWS"

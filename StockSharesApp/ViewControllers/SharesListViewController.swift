@@ -16,7 +16,8 @@ class SharesListViewController: DataLoadingViewController {
     var tableView: UITableView!
     var searchBar = UISearchBar()
     var finhub: DataProvider?
-    var networkManager = NetworkManager()
+   
+    var networkManager: NetworkManager?
     var favouriteList = [Model]()
     var isSetFavourite = false
     var stockModel: StockModel?
@@ -80,13 +81,18 @@ class SharesListViewController: DataLoadingViewController {
         self.view.backgroundColor = .white
         self.navigationItem.largeTitleDisplayMode = .always
         self.navigationController?.navigationBar.sizeToFit()
+        let finhubDataProvider = FinhubDataProvider()
+        networkManager = NetworkManager(provider: finhubDataProvider)
+        
+        
             //MARK: TODO DI
 //        finhub = FinhubDataProvider()
         //        var manager = NetworkManager(finhubDataProvider: finhub!)
         configureTabView()
         configureTableView()
         searchControllerConfig()
-        stockModel = StockModel(networkManager: networkManager, delegate: self)
+        //MARK: TODO!!!!
+        stockModel = StockModel(networkManager: networkManager!, delegate: self)
         self.stockModel?.fetchDataFromNetwork()
 //        showLoadingViews()
     }

@@ -17,9 +17,20 @@ class NetworkManager {
     var baseUrl = "https://finnhub.io/api/v1/"
     var cache = NSCache<NSString, UIImage>()
     //MARK: TODO delete singlton!
-    static let shared = NetworkManager()
+    static let shared = NetworkManager(provider: FinhubDataProvider())
     let finhubDataProvider = FinhubDataProvider()
-    let mboumProvider = MboumProvider()
+    let provider: DataProvider?
+    var newsProvider: NewsProvider?
+//    let mboumProvider = MboumProvider()
+    
+    init(provider: DataProvider?) {
+        self.provider = provider
+    }
+    
+    convenience init(newsProvider: NewsProvider) {
+        self.init(provider: nil) //??????????
+        self.newsProvider = newsProvider
+    }
     
     //мне нужен нетворк провайдер который будет принимать дата провайдер.
     //чтобы я мог подставить сюда любой API
@@ -31,11 +42,18 @@ class NetworkManager {
     
    
     func fetchNews(symbol: String = "AAPL", completion withCompletion: @escaping (Result<NewsDataModel, DataResponseError>) -> Void) {
-        mboumProvider.getNews(symbol: symbol, competion: withCompletion)
+        if let provider = newsProvider {
+            provider.getNews(symbol: symbol, competion: withCompletion)
+        } else {
+            print("ERROR BLYAT")
+        }
+      
     }
  
     func getDetails(company: String, completion withCompletion: @escaping (Profile?, StockPrice?) -> Void) {
-        finhubDataProvider.getDetails(company: company, completion: withCompletion)
+        if let provider = provider {
+            provider.getDetails(company: company, completion: withCompletion)
+        }
     }
     
     func loadCompanyPopularTest(completion withCompletion: @escaping (Result<PopularIndices, DataResponseError>) -> Void) {
@@ -60,6 +78,8 @@ class NetworkManager {
                 guard let self = self,
                       error == nil,
                       let data = data,
+                      let res = response as? HTTPURLResponse,
+                      res.hasSuccessStatusCode,
                       let image = UIImage(data: data) else {
                     completed(nil)
                     return

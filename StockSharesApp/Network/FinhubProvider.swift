@@ -19,6 +19,23 @@ class FinhubDataProvider: DataProvider {
         self.session = session
     }
     
+    func checkLimit(status: HTTPURLResponse) {
+//        let status = response as? HTTPURLResponse
+        var f = status.value(forHTTPHeaderField: "x-ratelimit-reset")
+        var s = Int(f ?? "0")
+        print(String(describing: status.statusCode))
+        print("ratelimit-remaining: \(status.value(forHTTPHeaderField: "x-ratelimit-remaining"))")
+        print("ratelimit-reset: \(status.value(forHTTPHeaderField: "x-ratelimit-reset"))")
+        print("ratelimit-limit \(status.value(forHTTPHeaderField: "x-ratelimit-limit"))")
+        var time = TimeInterval(f!)
+        let date = NSDate(timeIntervalSince1970: time!)
+        print("ratelimit-remaining: \(status.value(forHTTPHeaderField: "x-ratelimit-remaining"))")
+//                print("ratelimit-reset: \(status!.value(forHTTPHeaderField: "x-ratelimit-reset"))")
+        print("limit reset: \(date)")
+        print("ratelimit-limit \(status.value(forHTTPHeaderField: "x-ratelimit-limit"))")
+        
+    }
+    
     func loadPopular<T, E>(completion withCompletion: @escaping (Result<T, E>) -> Void) where T : Codable, E : Error {
         var components = URLComponents()
         components.scheme = "https"
@@ -28,30 +45,26 @@ class FinhubDataProvider: DataProvider {
         let queryItemToken = URLQueryItem(name: "token", value: token)
         components.queryItems = [queryItemSymbol, queryItemToken]
         let componentsURL = components.url
-        guard let mineURL = componentsURL else  { withCompletion(Result.failure(DataResponseError.network as! E))
+        
+        guard let popularUrl = componentsURL else  {
+            withCompletion(Result.failure(DataResponseError.network as! E))
             return
         }
         
-        let task = session.dataTask(with: mineURL) { (data, response, error) -> Void in
-            let status = response as? HTTPURLResponse
-            var f = status!.value(forHTTPHeaderField: "x-ratelimit-reset")
-            var s = Int(f ?? "0")
-            guard let decode = try? JSONDecoder().decode(T.self, from: data!) else {
-                var time = TimeInterval(f!)
-                let date = NSDate(timeIntervalSince1970: time!)
-                print("ratelimit-remaining: \(status!.value(forHTTPHeaderField: "x-ratelimit-remaining"))")
-//                print("ratelimit-reset: \(status!.value(forHTTPHeaderField: "x-ratelimit-reset"))")
-                print("limit reset: \(date)")
-                print("ratelimit-limit \(status!.value(forHTTPHeaderField: "x-ratelimit-limit"))")
+        let task = session.dataTask(with: popularUrl) { (data, response, error) -> Void in
+            guard let data = data,
+                  let statusCode = response as? HTTPURLResponse,
+                  statusCode.hasSuccessStatusCode,
+                  error == nil
+            else {
+                return
+            }
+            guard let decode = try? JSONDecoder().decode(T.self, from: data) else {
                 withCompletion(Result.failure(DataResponseError.decoding as! E))
                 return
             }
-            print("ratelimit-remaining: \(status!.value(forHTTPHeaderField: "x-ratelimit-remaining"))")
-            print("ratelimit-reset: \(status!.value(forHTTPHeaderField: "x-ratelimit-reset"))")
-            print("ratelimit-limit \(status!.value(forHTTPHeaderField: "x-ratelimit-limit"))")
-//
-            print(String(describing: status!.statusCode))
-            print("URLPopular:\(mineURL.absoluteString)")
+            
+            print("URLPopular:\(popularUrl.absoluteString)")
             withCompletion(Result.success(decode))
         }
         
@@ -69,12 +82,20 @@ class FinhubDataProvider: DataProvider {
         if let url = URL(string: "https://finnhub.io/api/v1/stock/profile2?symbol=\(company)&token=\(token)") {
             myGroup.enter()
             let task = session.dataTask(with: url) { (data, response, error) -> Void in
-                let decode = try? JSONDecoder().decode(T.self, from: data!)
-                let statusCode = response as? HTTPURLResponse
-                if statusCode!.hasTooManyRequest {
+                
+                guard let data = data,
+                      error == nil,
+                      let statusCode = response as? HTTPURLResponse,
+                      statusCode.hasSuccessStatusCode
+                else {
+                    return
+                }
+                let decode = try? JSONDecoder().decode(T.self, from: data)
+                
+                if statusCode.hasTooManyRequest {
                     print("429: \(url)")
                 }
-                print(String(describing: statusCode!.statusCode))
+                print(String(describing: statusCode.statusCode))
                 p = decode
                 print("getDetail'P':\(url.absoluteString)")
                 myGroup.leave()
@@ -84,9 +105,18 @@ class FinhubDataProvider: DataProvider {
         if  let mineURL = URL(string: "\(baseUrl)quote?symbol=\(company)&token=\(token)") {
             myGroup.enter()
             let task = session.dataTask(with: mineURL) { (data, response, error) -> Void in
-                let decode = try? JSONDecoder().decode(U.self, from: data!)
-                let statusCode = response as? HTTPURLResponse
-                if statusCode!.hasTooManyRequest {
+                
+                guard let data = data,
+                      error == nil,
+                      let statusCode = response as? HTTPURLResponse,
+                      statusCode.hasSuccessStatusCode
+                      else {
+                    myGroup.leave()
+                    return
+                }
+                let decode = try? JSONDecoder().decode(U.self, from: data)
+//                let statusCode = response as? HTTPURLResponse
+                if statusCode.hasTooManyRequest {
                     print("429: \(mineURL)")
 //                    DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 2) {
 //                        q = decode

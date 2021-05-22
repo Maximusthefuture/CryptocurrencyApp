@@ -18,7 +18,7 @@ class DetailViewController: UIViewController {
     var newsVC = NewsViewController()
     var chartView = LineChartView()
     var chooseButtonStackView: UIStackView!
-    var networkManager = NetworkManager()
+    var networkManager = NetworkManager(provider: FinhubDataProvider())
     var detailModel: DetailModel?
     let detailTabView = DetailTabView()
     var navController = UINavigationController(rootViewController: NewsViewController())

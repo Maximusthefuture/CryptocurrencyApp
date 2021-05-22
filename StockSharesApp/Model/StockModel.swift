@@ -33,7 +33,7 @@ class StockModel {
     
     
     //MARK: DEBUG
-    var debug = false
+    var debug = true
     
     init(networkManager: NetworkManager, delegate: StockModelDelegate) {
         self.networkManager = networkManager
